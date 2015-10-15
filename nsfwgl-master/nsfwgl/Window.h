@@ -10,8 +10,8 @@ No OpenGL!!!
 *****************/
 
 #include <glm/glm.hpp>
-#include <GLFW\glfw3.h>
 #include <gl_core_4_4.h>
+#include <GLFW\glfw3.h>
 
 struct GLFWwindow;
 

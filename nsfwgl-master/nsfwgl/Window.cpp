@@ -1,11 +1,14 @@
 #include "nsfw.h"
 
-void nsfw::Window::init(unsigned width, unsigned height)
+void nsfw::Window::init(unsigned a_width, unsigned a_height)
 {
 	//TODO_D("Should create and set an active windowing context. ONLY GLFW! No GL!");
 	// initialize
 	glfwInit();
-	window = glfwCreateWindow(width, height, NULL, NULL);
+	
+	width = a_width;
+	height = a_height;
+	window = glfwCreateWindow(width, height, "NSFWGL", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	if (ogl_LoadFunctions() == ogl_LOAD_FAILED)
 	{
@@ -41,7 +44,7 @@ bool nsfw::Window::getKey(unsigned k) const
 
 bool nsfw::Window::getShouldClose() const
 {
-	return (!glfwWindowShouldClose(window));
+	return (glfwWindowShouldClose(window));
 }
 
 unsigned nsfw::Window::getWidth() const

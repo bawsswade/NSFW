@@ -27,7 +27,7 @@ void DeferredApplication::onInit()
 {
 	auto &w = nsfw::Window::instance();
 	auto &a = nsfw::Assets::instance();
-
+	
 	// Setup FBOs
 	const char *gpassTextureNames[] = { "GPassAlbedo","GPassPosition","GPassNormal","GPassDepth" };
 	const unsigned gpassDepths[] = { 0,0,0,0 }; // GL_RGB8, GL_RGB32, GL_RGB32, GL_DEPTH_COMPONENT
