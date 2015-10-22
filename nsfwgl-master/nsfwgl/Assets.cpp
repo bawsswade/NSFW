@@ -42,17 +42,16 @@ bool nsfw::Assets::setINTERNAL(ASSET::GL_HANDLE_TYPE t, const char *name, GL_HAN
 
 bool nsfw::Assets::makeVAO(const char * name, const struct Vertex *verts, unsigned vsize,  const unsigned * tris, unsigned tsize)
 {
-	ASSET_LOG(GL_HANDLE_TYPE::VBO);
-	ASSET_LOG(GL_HANDLE_TYPE::IBO);
-	ASSET_LOG(GL_HANDLE_TYPE::VAO);
-	ASSET_LOG(GL_HANDLE_TYPE::SIZE);
+	ASSET_LOG(GL_HANDLE_TYPE::VBO);		// arrray on video card that stores vertices
+	ASSET_LOG(GL_HANDLE_TYPE::IBO);		// array on the video card that stores whicvh vertices make up triangles
+	ASSET_LOG(GL_HANDLE_TYPE::VAO);		// association between a VBO and IBO
+	ASSET_LOG(GL_HANDLE_TYPE::SIZE);	// amount of tirangles does a VAO hold
 
 	//get<SIZE>("MyMesh"); // number of triangles needed for glDRawElements
 	//get<VAO>("MyMesh");  // vao for glDrawElements
-	TODO_D("Should generate VBO, IBO, VAO, and SIZE using the parameters, storing them in the 'handles' map.\nThis is where vertex attributes are set!");
+	//TODO_D("Should generate VBO, IBO, VAO, and SIZE using the parameters, storing them in the 'handles' map.\nThis is where vertex attributes are set!");
 
-
-	GL_HANDLE h_vao,h_vbo,h_ibo; // unsigned integer
+	GL_HANDLE h_vao, h_vbo, h_ibo; // unsigned integer handles 
 
 	// gen vbo, ibo, vao
 	glGenVertexArrays(1, &h_vao);
@@ -65,10 +64,25 @@ bool nsfw::Assets::makeVAO(const char * name, const struct Vertex *verts, unsign
 	// allocate space in mem
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vsize, verts, GL_STATIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * tsize, tris, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);	// postion	: Spacial Location
+	glEnableVertexAttribArray(1);	// normal
+	glEnableVertexAttribArray(2);	// tangent
+	glEnableVertexAttribArray(3);	// texCorrd
+
+	// offsets
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)Vertex::POSITION);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)Vertex::NORMAL);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)Vertex::TANGENT);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)Vertex::TEXCOORD);
+
+
 	// unbind vao, vbo, ibo
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
 
 	// attach to map
 	setINTERNAL(VAO, name, h_vao);
@@ -85,24 +99,50 @@ bool nsfw::Assets::makeVAO(const char * name, const struct Vertex *verts, unsign
 	else return true;
 }
 
-// not sure if this right
 bool nsfw::Assets::makeFBO(const char * name, unsigned w, unsigned h, unsigned nTextures, const char * names[], const unsigned depths[])
 {
 	//TODO_D("Create an FBO! Array parameters are for the render targets, which this function should also generate!\nuse makeTexture.\nNOTE THAT THERE IS NO FUNCTION SETUP FOR MAKING RENDER BUFFER OBJECTS.");
 	ASSET_LOG(GL_HANDLE_TYPE::FBO);
-	
+	GL_HANDLE h_fbo;
+	glGenFramebuffers(1, &h_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, h_fbo);
+	std::vector<GLenum> drawBuffers;
+
+	//	8 guaranteed color attachments (with 1 stencil, 1 depth)
+	int n = 0;
 	for (int i = 0; i < nTextures; i++)
 	{
-		// Generate fbo for all layers of FBO
-		GL_HANDLE h_fbo;
-
 		makeTexture(names[i], w, h, depths[i]);
 
-		glGenFramebuffers(1, &h_fbo);
-		glBindFramebuffer(GL_FRAMEBUFFER, h_fbo);
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, get(TEXTURE, names[i]), 0);
-		setINTERNAL(FBO, names[i], h_fbo);
+		unsigned Attachments;
+		// differentiates between color, stencil, and depth
+		if (depths[i] == GL_DEPTH_COMPONENT) Attachments = GL_DEPTH_ATTACHMENT;		// depth
+		else if (depths[i] == GL_DEPTH_STENCIL) Attachments = GL_DEPTH_STENCIL;		// stencil
+		else Attachments = GL_COLOR_ATTACHMENT0 + n++;								// color
+
+		glFramebufferTexture(GL_FRAMEBUFFER, Attachments, get(TEXTURE, names[i]), 0);
+		
 	}
+
+	GLenum *colorAttachments = new GLenum[n];
+	for (int i = 0; i < n; i++) 
+		colorAttachments[i] = GL_COLOR_ATTACHMENT0 + i;
+	glDrawBuffers(n, colorAttachments);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	setINTERNAL(FBO, name, h_fbo);
+
+	//error checking
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+	{
+		bool incompleteAttachment = status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+		bool invalidEnum = status == GL_INVALID_ENUM;
+		bool invalidValue = status == GL_INVALID_VALUE;
+		printf("Framebuffer Error!\n");
+		return false;
+	}
+
 	return false;
 }
 
@@ -116,9 +156,12 @@ bool nsfw::Assets::makeTexture(const char * name, unsigned w, unsigned h, unsign
 	glBindTexture(GL_TEXTURE_2D, h_texture);
 
 	GLenum a_depth = (depth == GL_DEPTH_COMPONENT) ? GL_DEPTH_ATTACHMENT : depth;			//what does this do?
+	// valic values for depth GL_RGBA, GL_RGB, GL_RG, GL_RED, GL_REPTH_XOMPONTENT, GL_DEPTH_STENCIL
 	glTexImage2D(GL_TEXTURE_2D, 0, depth, w, h, 0, depth, GL_UNSIGNED_BYTE, pixels);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// error checking
 	GLenum error = glGetError();
@@ -127,10 +170,10 @@ bool nsfw::Assets::makeTexture(const char * name, unsigned w, unsigned h, unsign
 		bool invalidEnum = error == GL_INVALID_ENUM;
 		bool invalidValue = error == GL_INVALID_VALUE;
 		std::cout << name << " texture unsuccessfully loaded\n";
-		glBindTexture(GL_TEXTURE_2D, 0);
 		return false;
 	}
 
+	glBindTexture(GL_TEXTURE_2D, 0);
 	setINTERNAL(TEXTURE, name, h_texture);
 	return false;
 }
@@ -216,10 +259,10 @@ bool nsfw::Assets::loadShader(const char * name, const char * vpath, const char 
 	}
 	setINTERNAL(SHADER, name, h_shader);
 	
-	return false;
+	return true;
 }
 
-//*************help with this****************************************
+//not sure if i did this correctly
 bool nsfw::Assets::loadFBX(const char * name, const char * path)
 {
 	//name/meshName
@@ -228,6 +271,9 @@ bool nsfw::Assets::loadFBX(const char * name, const char * path)
 	
 	FBXFile file;
 	bool success = file.load(path);
+	std::vector<Vertex> vertices;
+	std::vector<unsigned> indices;
+
 	//error checking
 	if (!success)
 	{
@@ -236,19 +282,52 @@ bool nsfw::Assets::loadFBX(const char * name, const char * path)
 	}
 
 	file.initialiseOpenGLTextures();
-	// files 
+	
+	// load meshes
 	for (unsigned int i = 0; i < file.getMeshCount(); i++)
 	{
-		FBXMeshNode* mesh = file.getMeshByIndex(i);		
-		//Vertex 
+		FBXMeshNode* mesh = file.getMeshByIndex(i);	
+
+		for (int j = 0; j < mesh->m_vertices.size(); j++)
+		{
+			auto xVert = mesh->m_vertices[j];
+			Vertex v;
+			v.position = xVert.position;
+			v.normal = xVert.normal;
+			v.texCoord = xVert.texCoord1;
+		}
+		indices = mesh->m_indices;
+
+		makeVAO(mesh->m_name.c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
 	}
 
-	return false;
+	// load textures
+	for (unsigned int i = 0; i < file.getTextureCount(); i++)
+	{
+		FBXTexture* tex = file.getTextureByIndex(i);
+		loadTexture(tex->name.c_str(), tex->path.c_str());
+	}
+
+	return true;
 }
 
+// not finished
 bool nsfw::Assets::loadOBJ(const char * name, const char * path)
 {
 	TODO_D("OBJ file-loading support needed.\nThis function should call makeVAO and loadTexture (if necessary), MAKE SURE TO TAKE THE OBJ DATA AND PROPERLY LINE IT UP WITH YOUR VERTEX ATTRIBUTES (or interleave the data into your vertex struct).\n");
+	/*std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	
+	std::vector<Vertex> verticies;
+	std::vector<unsigned int>indicies;
+
+	std::string err = tinyobj::LoadObj(shapes, materials, path);*/
+
+	/*for (unsigned int i = 0; i < shapes.size(); i++)
+	{
+
+	}*/
+
 	return false;
 }
 

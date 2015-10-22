@@ -27,7 +27,7 @@ namespace nsfw
 	protected:
 		Asset<ASSET::FBO>	  fbo;		// All renderpasses should use an FBO. 0 is the screen!
 		Asset<ASSET::SHADER>  shader;	// All RPs also use a shader!
-
+		bool shaderActive;
 
 		// fbo = "MyFBO";
 		// Assets::instance().get(fbo)

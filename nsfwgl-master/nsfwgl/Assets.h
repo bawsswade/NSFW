@@ -3,6 +3,7 @@
 #include <GLFW\glfw3.h>
 #include <glm\glm.hpp>
 #include <FBXFile.h>
+#include <tiny_obj_loader.h>
 
 #include <unordered_map>
 #include <string>
