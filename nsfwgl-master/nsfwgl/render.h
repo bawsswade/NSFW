@@ -25,15 +25,16 @@ namespace nsfw
 	class RenderPass
 	{
 	protected:
-		Asset<ASSET::FBO>	  fbo;		// All renderpasses should use an FBO. 0 is the screen!
-		Asset<ASSET::SHADER>  shader;	// All RPs also use a shader!
-		bool shaderActive;
+		
 
 		// fbo = "MyFBO";
 		// Assets::instance().get(fbo)
 		// fbo;
 	public:
-		RenderPass(Asset<ASSET::SHADER> a_shader, Asset<ASSET::FBO> a_fbo) : shader(a_shader), fbo(a_fbo) {}
+		Asset<ASSET::FBO>	  fbo;		// All renderpasses should use an FBO. 0 is the screen!
+		Asset<ASSET::SHADER>  shader;	// All RPs also use a shader!
+		bool shaderActive;
+		//RenderPass(Asset<ASSET::SHADER> a_shader, Asset<ASSET::FBO> a_fbo) : shader(a_shader), fbo(a_fbo) {}
 		// uniforms could be set in prep, elsewhere in the application, or in the draw
 		// This function should allow you to hide the glUniform* functions into a SWITCH statement.
 		// The logic for each uniform is slightly different- not all parameters are necessary.

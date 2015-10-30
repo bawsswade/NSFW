@@ -72,9 +72,9 @@ bool nsfw::Assets::makeVAO(const char * name, const struct Vertex *verts, unsign
 
 	// offsets
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)Vertex::POSITION);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)Vertex::NORMAL);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)Vertex::TANGENT);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)Vertex::TEXCOORD);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)Vertex::NORMAL);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)Vertex::TANGENT);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)Vertex::TEXCOORD);
 
 
 	// unbind vao, vbo, ibo
@@ -117,7 +117,7 @@ bool nsfw::Assets::makeFBO(const char * name, unsigned w, unsigned h, unsigned n
 		unsigned Attachments;
 		// differentiates between color, stencil, and depth
 		if (depths[i] == GL_DEPTH_COMPONENT) Attachments = GL_DEPTH_ATTACHMENT;		// depth
-		else if (depths[i] == GL_DEPTH_STENCIL) Attachments = GL_DEPTH_STENCIL;		// stencil
+		else if (depths[i] == GL_DEPTH_STENCIL) Attachments = GL_STENCIL_ATTACHMENT;		// stencil
 		else Attachments = GL_COLOR_ATTACHMENT0 + n++;								// color
 
 		glFramebufferTexture(GL_FRAMEBUFFER, Attachments, get(TEXTURE, names[i]), 0);
@@ -128,8 +128,8 @@ bool nsfw::Assets::makeFBO(const char * name, unsigned w, unsigned h, unsigned n
 	for (int i = 0; i < n; i++) 
 		colorAttachments[i] = GL_COLOR_ATTACHMENT0 + i;
 	glDrawBuffers(n, colorAttachments);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 	setINTERNAL(FBO, name, h_fbo);
 
 	//error checking
@@ -143,10 +143,12 @@ bool nsfw::Assets::makeFBO(const char * name, unsigned w, unsigned h, unsigned n
 		return false;
 	}
 
-	return false;
+	
+
+	return true;
 }
 
-bool nsfw::Assets::makeTexture(const char * name, unsigned w, unsigned h, unsigned depth, const char *pixels)
+bool nsfw::Assets::makeTexture(const char * name, unsigned w, unsigned h, unsigned depth, const unsigned char *pixels)
 {
 	//TODO_D("Allocate a texture using the given space/dimensions. Should work if 'pixels' is null, so that you can use this same function with makeFBO\n note that Dept will use a GL value.");
 	ASSET_LOG(GL_HANDLE_TYPE::TEXTURE);
@@ -155,13 +157,13 @@ bool nsfw::Assets::makeTexture(const char * name, unsigned w, unsigned h, unsign
 	glGenTextures(1, &h_texture);
 	glBindTexture(GL_TEXTURE_2D, h_texture);
 
-	GLenum a_depth = (depth == GL_DEPTH_COMPONENT) ? GL_DEPTH_ATTACHMENT : depth;			//what does this do?
+	//GLenum a_depth = (depth == GL_DEPTH_COMPONENT) ? GL_DEPTH_ATTACHMENT : depth;			//what does this do?
 	// valic values for depth GL_RGBA, GL_RGB, GL_RG, GL_RED, GL_REPTH_XOMPONTENT, GL_DEPTH_STENCIL
 	glTexImage2D(GL_TEXTURE_2D, 0, depth, w, h, 0, depth, GL_UNSIGNED_BYTE, pixels);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// error checking
 	GLenum error = glGetError();
@@ -183,13 +185,21 @@ bool nsfw::Assets::loadTexture(const char * name, const char * path)
 	//TODO_D("This should load a texture from a file, using makeTexture to perform the allocation.\nUse STBI, and make sure you switch the format STBI provides to match what openGL needs!");
 	
 	int imageWidth = 0, imageHeight = 0, imageFormat = 0;
-	const char* data = (const char*)stbi_load(path, &imageWidth, &imageHeight, &imageFormat, STBI_default);
+	const unsigned char* data = stbi_load(path, &imageWidth, &imageHeight, &imageFormat, STBI_default);
 
 	//error checking
 	if (data == nullptr)
 	{
 		std::cout << "error loading" << name << " texture.\n" << stbi_failure_reason();
 		return false;
+	}
+
+	switch (imageFormat)
+	{
+	case STBI_grey:			imageFormat = GL_RED;	break;
+	case STBI_grey_alpha:	imageFormat = GL_RG;	break;
+	case STBI_rgb:			imageFormat = GL_RGB;	break;
+	case STBI_rgb_alpha:	imageFormat = GL_RGBA;	break;
 	}
 
 	makeTexture(name, imageWidth, imageHeight, imageFormat, data);
@@ -204,52 +214,63 @@ bool nsfw::Assets::loadShader(const char * name, const char * vpath, const char 
 	//TODO_D("Load shader from a file.");
 	GL_HANDLE h_shader;
 
-	std::string s = "";
-	std::string shader;
+	std::ifstream vin(vpath);
+	std::string vcontents((std::istreambuf_iterator<char>(vin)), std::istreambuf_iterator<char>());
 
-	std::ifstream f(vpath);
-	if (f.is_open())
-	{
-		while (getline(f, s))
-		{
-			shader += "\n" + s;
-		}
-		f.close();
-	}
-	const char *vsSource = shader.c_str();
+	std::ifstream fin(fpath);
+	std::string fcontents((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
 
-	std::string s2 = "";
-	std::string shader2;
-
-	std::ifstream f2(fpath);
-	if (f2.is_open())
-	{
-		while (getline(f2, s2))
-		{
-			shader2 += "\n" + s2;
-		}
-		f2.close();
-	}
-	const char* fsSource = shader2.c_str();
+	const char* vsSource = vcontents.c_str();
+	const char* fsSource = fcontents.c_str();
 
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, (const char**)&vsSource, 0);
+	glShaderSource(vertexShader, 1, &vsSource, 0);
 	glCompileShader(vertexShader);
 
+	// error checking
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		bool invalidEnum = error == GL_INVALID_ENUM;
+		bool invalidValue = error == GL_INVALID_VALUE;
+		std::cout << name << "vertex shader unsuccessfully loaded\n";
+		return false;
+	}
+
 	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, (const char**)&fsSource, 0);
+	glShaderSource(fragmentShader, 1, &fsSource, 0);
 	glCompileShader(fragmentShader);
+
+	// error checking
+	error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		bool invalidEnum = error == GL_INVALID_ENUM;
+		bool invalidValue = error == GL_INVALID_VALUE;
+		std::cout << name << "fragment shader unsuccessfully loaded\n";
+		return false;
+	}
 
 	h_shader = glCreateProgram();
 	glAttachShader(h_shader, vertexShader);
 	glAttachShader(h_shader, fragmentShader);
 	glLinkProgram(h_shader);
 
+	// error checking
+	error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		bool invalidEnum = error == GL_INVALID_ENUM;
+		bool invalidValue = error == GL_INVALID_VALUE;
+		std::cout << name << "shader handler unsuccessfully loaded\n";
+		return false;
+	}
+
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
 	// error checking
-	GLenum error = glGetError();
+	error = glGetError();
 	if (error != GL_NO_ERROR)
 	{
 		bool invalidEnum = error == GL_INVALID_ENUM;
@@ -262,11 +283,8 @@ bool nsfw::Assets::loadShader(const char * name, const char * vpath, const char 
 	return true;
 }
 
-//not sure if i did this correctly
 bool nsfw::Assets::loadFBX(const char * name, const char * path)
 {
-	//name/meshName
-	//name/textureName
 	//TODO_D("FBX file-loading support needed.\nThis function should call loadTexture and makeVAO internally.\nFBX meshes each have their own name, you may use this to name the meshes as they come in.\nMAKE SURE YOU SUPPORT THE DIFFERENCE BETWEEN FBXVERTEX AND YOUR VERTEX STRUCT!\n");
 	
 	FBXFile file;
@@ -295,6 +313,9 @@ bool nsfw::Assets::loadFBX(const char * name, const char * path)
 			v.position = xVert.position;
 			v.normal = xVert.normal;
 			v.texCoord = xVert.texCoord1;
+			v.tangent = xVert.tangent;
+
+			vertices.push_back(v);
 		}
 		indices = mesh->m_indices;
 
@@ -305,9 +326,12 @@ bool nsfw::Assets::loadFBX(const char * name, const char * path)
 	for (unsigned int i = 0; i < file.getTextureCount(); i++)
 	{
 		FBXTexture* tex = file.getTextureByIndex(i);
-		loadTexture(tex->name.c_str(), tex->path.c_str());
+		std::string n = name;
+		n += tex->name;
+		loadTexture(n.c_str(), tex->path.c_str());
 	}
 
+	file.unload();
 	return true;
 }
 
@@ -333,7 +357,7 @@ bool nsfw::Assets::loadOBJ(const char * name, const char * path)
 
 void nsfw::Assets::init()
 {
-	TODO_D("Load up some default assets here if you want.");
+	//TODO_D("Load up some default assets here if you want.");
 	
 	setINTERNAL(FBO,"Screen",0);
 	
@@ -343,6 +367,8 @@ void nsfw::Assets::init()
 	char w[] = { 255,255,255,255 };
 	makeTexture("White", 1, 1, GL_RGB8, w);
 	*/
+	const unsigned char w[] = { 255,0,255,255 };
+	makeTexture("Magenta", 1, 1, GL_RGBA, w);
 
 }
 
