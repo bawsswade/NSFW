@@ -256,6 +256,17 @@ bool nsfw::Assets::loadShader(const char * name, const char * vpath, const char 
 	glAttachShader(h_shader, fragmentShader);
 	glLinkProgram(h_shader);
 
+	GLint status;
+	glGetProgramiv(h_shader, GL_LINK_STATUS, &status);
+	if (status != GL_TRUE)	// do we have a problem?!
+	{
+		GLsizei logLen = 0;
+		GLchar errorMsg[1024];
+		glGetProgramInfoLog(h_shader, 1024, &logLen, errorMsg);
+
+		std::cerr << errorMsg << std::endl;
+	}
+
 	// error checking
 	error = glGetError();
 	if (error != GL_NO_ERROR)

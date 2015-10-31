@@ -10,10 +10,10 @@ class CPass : public nsfw::RenderPass
 
 public:
 											
-	CPass(const char *shaderName, const char *fboName) 
-						  : RenderPass(shaderName, fboName), albedo("GPassAlbedo"), position("GPassPosition"), // NAMES ARE FROM ASSET LIBRARY!
+	CPass(const char *shaderName, const char *fboName) { shader = shaderName; fbo = fboName; }
+						  /*: RenderPass(shaderName, fboName), albedo("GPassAlbedo"), position("GPassPosition"), // NAMES ARE FROM ASSET LIBRARY!
 											    normal("GPassNormal"),depth("GPassDepth"), light("LPassColor")
-												 {}
+												 {}*/
 
 
 	void prep() { TODO_D("glUseProgram, glClear, glBindFrameBuffer, glViewPort, glEnable etc..."); }

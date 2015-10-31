@@ -39,6 +39,9 @@ public:
 		setUniform("Model", nsfw::UNIFORM::MAT4, glm::value_ptr(go.transform));
 		setUniform("Diffuse", nsfw::UNIFORM::TEX2, &(go.diffuse), 0);
 
+		/*float dT = nsfw::Window::instance().getDeltaTime();
+		setUniform("deltaT", nsfw::UNIFORM::FLO1, &dT);*/
+
 		glBindVertexArray(*go.mesh);
 		glDrawElements(GL_TRIANGLES, *go.tris, GL_UNSIGNED_INT, 0);
 	}

@@ -21,6 +21,11 @@ namespace nsfw
 	{
 		GLFWwindow *window;
 		unsigned width, height;		// keep track of width height- needed for glViewport FBO integration
+		double currentXCursor = 0, currentYCursor = 0;
+
+		float deltaTime;
+		float lastTime = 0;
+		float currentTime = 0;
 
 		Window():window(nullptr),width(0),height(0) {}
 	public:
@@ -36,11 +41,14 @@ namespace nsfw
 		void term();
 
 		// just wrap what GLFW already does
-		float	  getTime()                  const;
-		bool	  getKey(unsigned k)         const;
-		bool	  getShouldClose()           const;
-		unsigned  getWidth()                 const;
-		unsigned  getHeight()                const;
-		glm::mat4 getTexelAdjustmentMatrix() const;
+		float		getTime()					const;
+		float		getDeltaTime();
+		bool		getKey(unsigned k)			const;
+		bool		getShouldClose()			const;
+		unsigned	getWidth()					const;
+		unsigned	getHeight()					const;
+		glm::mat4	getTexelAdjustmentMatrix()	const;
+		glm::vec2	getCursorPos();
+		int			getMouseButton();
 	};
 }
