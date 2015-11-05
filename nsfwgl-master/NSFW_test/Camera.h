@@ -15,7 +15,7 @@ struct Camera
 	double lastXCursor = 0, lastYCursor = 0;/* , currentXCursor = 0, currentYCursor = 0;*/
 	double deltaXCursor = 0, deltaYCursor = 0;
 
-	Camera() : a_near(1), a_far(100), aspect(800/600.f),fov(90) {}
+	Camera() : a_near(0.1f), a_far(100), aspect(800/600.f),fov(90) {}
 
 	void update() {}
 

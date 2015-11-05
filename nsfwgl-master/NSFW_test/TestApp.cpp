@@ -10,6 +10,7 @@ void TestApp::onStep()
 
 	fp.prep();
 	fp.draw(camera, obj);
+	fp.draw(camera, plane);
 	fp.post();
 
 	cp.prep();
@@ -24,11 +25,17 @@ void TestApp::onPlay()
 	obj.mesh = "SoulSpear_Low:SoulSpear_Low1";						// default
 	obj.tris = "SoulSpear_Low:SoulSpear_Low1";						// default
 
+	plane.diffuse = "White";
+	plane.mesh = "Quad";
+	plane.tris = "Quad";
+
+	plane.transform = glm::rotate(plane.transform, 270.0f, vec3(1, 0, 0));
+
 	fp.shader = "Light";
 	fp.fbo = "Forward";
 
 	cp.shader = "Post";
-	//fp.fbo = "Screen";						// default
+	cp.fbo = "ShadowMap";						// default
 }
 
 void TestApp::onInit()
@@ -41,9 +48,17 @@ void TestApp::onInit()
 
 	nsfw::Assets::instance().loadShader("Light", "../resources/shaders/light.vert", "../resources/shaders/light.frag");
 
+	nsfw::Assets::instance().loadTexture("White", "../resources/textures/white.png");
+
+	// foward rendering
 	const char   *names[] = { "ForwardFinal", "ForwardDepth" };
 	const unsigned deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
 	nsfw::Assets::instance().makeFBO("Forward", 800, 600, 2, names, deps);
+
+	// shadow map
+	const char *s_names[] =		{ "PostFinal", "PostDepth" };
+	const unsigned s_deps[] =	{ GL_RGBA, GL_DEPTH_COMPONENT };
+	nsfw::Assets::instance().makeFBO("ShadowMap", 800, 600, 1, s_names, s_deps);
 
 	camera.lookAt(glm::vec3(3, 3, 3),		// offset  
 		glm::vec3(0, 0, 0),		// origin

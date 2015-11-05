@@ -10,6 +10,7 @@ class TestApp:public nsfw::Application
 {
 	Camera camera;
 	GameObject obj;
+	GameObject plane;
 	FowardPass fp;
 	PostPass cp;
 

@@ -116,9 +116,9 @@ bool nsfw::Assets::makeFBO(const char * name, unsigned w, unsigned h, unsigned n
 
 		unsigned Attachments;
 		// differentiates between color, stencil, and depth
-		if (depths[i] == GL_DEPTH_COMPONENT) Attachments = GL_DEPTH_ATTACHMENT;		// depth
+		if (depths[i] == GL_DEPTH_COMPONENT) Attachments = GL_DEPTH_ATTACHMENT;				// depth
 		else if (depths[i] == GL_DEPTH_STENCIL) Attachments = GL_STENCIL_ATTACHMENT;		// stencil
-		else Attachments = GL_COLOR_ATTACHMENT0 + n++;								// color
+		else Attachments = GL_COLOR_ATTACHMENT0 + n++;										// color
 
 		glFramebufferTexture(GL_FRAMEBUFFER, Attachments, get(TEXTURE, names[i]), 0);
 		

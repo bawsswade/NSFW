@@ -9,7 +9,7 @@ out vec4 FragColor;
 uniform sampler2D Diffuse;
 uniform vec3 camPos;
 
-vec3 lightColor   = vec3(1.0f, 0.9f, .8f);
+vec3 lightColor   = vec3(0.1f, 1.0f, .1f);
 vec3 lightDir     = vec3( -1 , -0.5f, 0);
 float specPower   = 25.0f;
 
@@ -39,6 +39,8 @@ void main()
 	float specTerm = pow(temp, specPower); 
 	vec3 specular = ambientColor * specTerm * lightColor;
 
-	//FragColor = vec4(ambient + l_color + specular ,1);
-	FragColor = vec4(specular ,1);
+	FragColor = vec4(ambient + l_color + specular ,1);
+	//FragColor = vNormal;
+	//FragColor = vec4(l_color, 1.0f);
+	//FragColor = vec4(specular ,1);
 }
