@@ -8,9 +8,18 @@ void TestApp::onStep()
 	float dt = nsfw::Window::instance().getDeltaTime();
 	obj.transform = glm::rotate(obj.transform, (dt * 10), vec3(0, 1, 0));
 
+	sp.prep();
+	sp.draw(light, obj);
+	sp.draw(light, plane);
+	//sp.draw(l2, obj);		// trying to add another light but need to have another shader propgram
+	//sp.draw(l2, plane);
+	sp.post();
+
 	fp.prep();
-	fp.draw(camera, obj);
-	fp.draw(camera, plane);
+	fp.draw(camera, obj, light);
+	fp.draw(camera, plane, light);
+	//fp.draw(camera, obj, l2);
+	//fp.draw(camera, plane, l2);
 	fp.post();
 
 	cp.prep();
@@ -20,7 +29,10 @@ void TestApp::onStep()
 
 void TestApp::onPlay()
 {
-	//obj.transform = glm::mat4(1);
+	light.direction = glm::normalize(vec4(1));
+	light.color = vec4(1.0f, 0.1f, 0.1f, 0);
+	//l2.direction = glm::normalize(vec4(-1, 1, 1, 1));
+	//l2.color = vec4(0.1f, 0.1f, 1.0f, 0);
 	obj.diffuse = "SoulSpearsoulspear_diffuse.tga";					// default
 	obj.mesh = "SoulSpear_Low:SoulSpear_Low1";						// default
 	obj.tris = "SoulSpear_Low:SoulSpear_Low1";						// default
@@ -29,13 +41,17 @@ void TestApp::onPlay()
 	plane.mesh = "Quad";
 	plane.tris = "Quad";
 
+	plane.transform = glm::scale(vec3(5, 5, 5));
 	plane.transform = glm::rotate(plane.transform, 270.0f, vec3(1, 0, 0));
+
+	sp.shader = "ShadowShader";
+	sp.fbo = "ShadowFBO";
 
 	fp.shader = "Light";
 	fp.fbo = "Forward";
+	fp.shadowMap = "ShadowDepth";
 
-	cp.shader = "Post";
-	cp.fbo = "ShadowMap";						// default
+	cp.shader = "Post";	
 }
 
 void TestApp::onInit()
@@ -48,6 +64,8 @@ void TestApp::onInit()
 
 	nsfw::Assets::instance().loadShader("Light", "../resources/shaders/light.vert", "../resources/shaders/light.frag");
 
+	nsfw::Assets::instance().loadShader("ShadowShader", "../resources/shaders/shadow.vert", "../resources/shaders/shadow.frag");
+
 	nsfw::Assets::instance().loadTexture("White", "../resources/textures/white.png");
 
 	// foward rendering
@@ -55,10 +73,10 @@ void TestApp::onInit()
 	const unsigned deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
 	nsfw::Assets::instance().makeFBO("Forward", 800, 600, 2, names, deps);
 
-	// shadow map
-	const char *s_names[] =		{ "PostFinal", "PostDepth" };
-	const unsigned s_deps[] =	{ GL_RGBA, GL_DEPTH_COMPONENT };
-	nsfw::Assets::instance().makeFBO("ShadowMap", 800, 600, 1, s_names, s_deps);
+	// need to create FBO for shadowMap but save texture as a depth attachment or is above it?
+	const char   *s_names[] = {"ShadowDepth" };
+	const unsigned s_deps[] = { GL_DEPTH_COMPONENT };
+	nsfw::Assets::instance().makeFBO("ShadowFBO", 512, 512, 1, s_names, s_deps);
 
 	camera.lookAt(glm::vec3(3, 3, 3),		// offset  
 		glm::vec3(0, 0, 0),		// origin

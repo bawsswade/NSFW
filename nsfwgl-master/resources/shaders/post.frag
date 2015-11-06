@@ -10,8 +10,8 @@ uniform sampler2D Depth;
 void main()
 {
 		FragColor = texture(Final, vTexCoords);
-		if(vTexCoords.x < 0.5f)
-			FragColor = texture(Depth, vTexCoords);
+		//if(vTexCoords.x < 0.5f)
+			//FragColor = texture(Depth, vTexCoords);
 			
 		//FragColor = vec4(1,1,0,1);
 }

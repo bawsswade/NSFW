@@ -41,5 +41,11 @@
     <ClInclude Include="PostPass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ShadowPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

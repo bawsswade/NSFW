@@ -5,11 +5,14 @@
 
 #include "Camera.h"
 #include "GameObject.h"
-
+#include "Light.h"
 
 class FowardPass : public nsfw::RenderPass
 {
+
 public:
+	nsfw::Asset<nsfw::ASSET::TEXTURE> shadowMap;
+
 	void prep()
 	{		
 		glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
@@ -30,17 +33,22 @@ public:
 		glUseProgram(0);
 	}
 
-	void draw(const Camera &c, const GameObject &go)
+	void draw(const Camera &c, const GameObject &go, const Light &l)
 	{
 		// Camera
 		setUniform("Projection", nsfw::UNIFORM::MAT4, glm::value_ptr(c.getProjection()));
 		setUniform("View", nsfw::UNIFORM::MAT4, glm::value_ptr(c.getView()));
 		// GameObject
 		setUniform("Model", nsfw::UNIFORM::MAT4, glm::value_ptr(go.transform));
-		setUniform("Diffuse", nsfw::UNIFORM::TEX2, &(go.diffuse), 0);
+		setUniform("Diffuse", nsfw::UNIFORM::TEX2, &(go.diffuse), 1);
 
-		/*float dT = nsfw::Window::instance().getDeltaTime();
-		setUniform("deltaT", nsfw::UNIFORM::FLO1, &dT);*/
+		// for shadow texture
+		setUniform("shadowMap", nsfw::UNIFORM::TEX2, shadowMap, 0);
+
+		// for light 
+		setUniform("LightMatrix", nsfw::UNIFORM::MAT4, glm::value_ptr(l.getProjectionView()));
+		setUniform("LightOffset", nsfw::UNIFORM::MAT4, glm::value_ptr(l.getOffset()));
+		//setUniform("LightColor", nsfw::UNIFORM::, glm::value_ptr());
 
 		glBindVertexArray(*go.mesh);
 		glDrawElements(GL_TRIANGLES, *go.tris, GL_UNSIGNED_INT, 0);

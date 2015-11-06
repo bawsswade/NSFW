@@ -27,7 +27,7 @@ struct Camera
 	glm::mat4 getView()				const { return glm::inverse(worldTransform); }
 	glm::mat4 getProjection()		const { return glm::perspective(fov, aspect, a_near, a_far); }
 	glm::mat4 getProjectionView()	const { return getProjection() * getView(); }
-	glm::vec3 getViewPosition() const;	// IN THE CPP NOT SURE WHy
+	glm::vec3 getViewPosition()		const;	// needs to be in the cpp
 
 	void Input(float speed, float deltaTime);
 
