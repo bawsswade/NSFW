@@ -38,22 +38,23 @@ void DeferredApplication::onInit()
 	a.makeFBO("LightPass", w.getWidth(), w.getHeight(), 1, lpassTextureNames, lpassDepths); 
 
 	// Load Shaders
-	a.loadShader("GeometryPassPhong", "/path/to/gpass/Phong/vertex", "/path/to/gpass/Phong/fragment");
-	a.loadShader("LightPassDirectional", "/path/to/lpass/Directional/vertex", "/path/to/lpass/Directional/fragment");
+	a.loadShader("GeometryPassPhong", "../resources/shader/shadow.vert", "../resources/shader/shadow.frag");		// shadow depths
+	a.loadShader("LightPassDirectional", "../resources/shader/light.vert", "../resources/shader/light.frag");		// lights and geometry
 	//a.loadShader("LightPassPoint", "/path/to/lpass/Point/vertex", "/path/to/lpass/Point/fragment");
-	a.loadShader("CompPass", "/path/to/cpass/vertex", "/path/to/cpass/fragment");
+	a.loadShader("CompPass", "../resources/shader/post.vert", "../resources/shader/post.frag");					// composite (no fbo)
 
 	// Load any other textures and geometry we want to use
-	a.loadFBX("Soulspear", "/path/to/souuuulspppeeeeaaar");
+	a.loadFBX("Soulspear", "../resources/FBX/soulspear/soulspear.fbx");
+
+	m_camera = new Camera;
+	m_camera->lookAt(glm::vec3(10), glm::vec3(0), glm::vec3(0, 1, 0));
 }
 
 void DeferredApplication::onPlay()
 {
-	TODO_D("Initialize our scene objects!");  
+	//TODO_D("Initialize our scene objects!");  
 	m_light     = new LightD;
 	m_soulspear = new Geometry;
-
-	m_camera->lookAt(glm::vec3(10), glm::vec3(0), glm::vec3(0,1,0));
 
 	m_light->color      = glm::vec3(1, 1, 1);
 	m_light->direction = glm::normalize(glm::vec3(1, 1, 0));
@@ -66,7 +67,7 @@ void DeferredApplication::onPlay()
 	m_soulspear->specPower = 40.0f;
 	m_soulspear->transform = mat4(1);
 
-	TODO_D("Initialize our render passes!");
+	//TODO_D("Initialize our render passes!");
 
 	m_geometryPass			= new GPass ("GeometryPassPhong", "GeometryPass");
 	m_directionalLightPass  = new LPassD("LightPassDirectional", "LightPass");
@@ -75,12 +76,12 @@ void DeferredApplication::onPlay()
 
 void DeferredApplication::onStep()
 {
-	TODO_D("Update our game objects-- IF THEY EVEN DO ANYTHING");
+	//TODO_D("Update our game objects-- IF THEY EVEN DO ANYTHING");
 	m_light->update();
 	m_camera->update();
 	m_soulspear->update();
 	
-	TODO_D("Draw all of our renderpasses!");
+	//TODO_D("Draw all of our renderpasses!");
 	m_geometryPass->prep();
 	m_geometryPass->draw(*m_camera, *m_soulspear);
 	m_geometryPass->post();

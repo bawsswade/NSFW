@@ -8,7 +8,6 @@ in vec4 vShadowCoord;
 out vec4 FragColor;
 
 uniform sampler2D Diffuse;
-uniform sampler2D shadowMap;
 uniform vec3 camPos;
 
 vec3 lightColor   = vec3(0.0f, 0.6f, 0.0f);
@@ -36,13 +35,6 @@ void main()
 	float lambert = max(0.0f, dot(vNormal.xyz, -lightDir));
 	float visibility = max(1.0f,dot(normalize(vNormal.xyz), lightDir));
 
-	for(int i = 0; i < 4; i++)
-	{
-		if( texture(shadowMap, vShadowCoord.xy + poissonDisk[i]/1000.0 ).z < vShadowCoord.z - shadowBias)
-		{
-			visibility -= 0.2f;
-		}
-	}
 	vec3 l_color = visibility * colorMap * lightColor;
 	
 	//
