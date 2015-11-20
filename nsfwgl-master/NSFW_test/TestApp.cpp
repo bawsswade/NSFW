@@ -4,6 +4,8 @@ using namespace std;
 
 void TestApp::onStep()
 {
+	auto &ass = nsfw::Assets::instance();
+
 	camera.Input(10.0f, nsfw::Window::instance().getDeltaTime());
 	float dt = nsfw::Window::instance().getDeltaTime();
 	obj.transform = glm::rotate(obj.transform, (dt * 10), vec3(0, 1, 0));
@@ -18,9 +20,11 @@ void TestApp::onStep()
 	fp.prep();
 	fp.draw(camera, obj, light);
 	fp.draw(camera, plane, light);
-	//fp.draw(camera, obj, l2);
-	//fp.draw(camera, plane, l2);
 	fp.post();
+
+	pp.prep();
+	pp.draw(m_emitter, camera);
+	pp.post();
 
 	cp.prep();
 	cp.draw();
@@ -30,14 +34,14 @@ void TestApp::onStep()
 void TestApp::onPlay()
 {
 	light.direction = glm::normalize(vec4(1));
-	light.color = vec4(1.0f, 0.1f, 0.1f, 0);
+	light.color = vec4(0.3f, 0.3f, 0.3f, 0);
 	//l2.direction = glm::normalize(vec4(-1, 1, 1, 1));
 	//l2.color = vec4(0.1f, 0.1f, 1.0f, 0);
 	obj.diffuse = "SoulSpearsoulspear_diffuse.tga";					// default
 	obj.mesh = "SoulSpear_Low:SoulSpear_Low1";						// default
 	obj.tris = "SoulSpear_Low:SoulSpear_Low1";						// default
 
-	plane.diffuse = "White";
+	plane.diffuse = "Stone";
 	plane.mesh = "Quad";
 	plane.tris = "Quad";
 
@@ -50,6 +54,9 @@ void TestApp::onPlay()
 	fp.shader = "Light";
 	fp.fbo = "Forward";
 	fp.shadowMap = "ShadowDepth";
+
+	pp.shader = "ParticleShader";
+	pp.fbo = "ParticlesFBO";
 
 	cp.shader = "Post";	
 }
@@ -66,21 +73,34 @@ void TestApp::onInit()
 
 	nsfw::Assets::instance().loadShader("ShadowShader", "../resources/shaders/shadow.vert", "../resources/shaders/shadow.frag");
 
+	nsfw::Assets::instance().loadShader("ParticleShader", "../resources/shaders/particle.vert", "../resources/shaders/particle.frag");
+
+	nsfw::Assets::instance().loadTexture("Stone", "../resources/textures/stone.jpg");
+
 	nsfw::Assets::instance().loadTexture("White", "../resources/textures/white.png");
 
 	// foward rendering
-	const char   *names[] = { "ForwardFinal", "ForwardDepth" };
+	const char   *names[] = { "ForwardFinal", "ForwardDepth"};
 	const unsigned deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
 	nsfw::Assets::instance().makeFBO("Forward", 800, 600, 2, names, deps);
 
-	// need to create FBO for shadowMap but save texture as a depth attachment or is above it?
-	const char   *s_names[] = {"ShadowDepth" };
+	// for particles
+	const char *p_names[] = { "Particles", "ParticleDepth" };
+	const unsigned p_deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
+	nsfw::Assets::instance().makeFBO("ParticlesFBO", 800, 600, 2, p_names, p_deps);
+
+	// shadow
+	const char   *s_names[] = { "ShadowDepth" };
 	const unsigned s_deps[] = { GL_DEPTH_COMPONENT };
 	nsfw::Assets::instance().makeFBO("ShadowFBO", 512, 512, 1, s_names, s_deps);
 
 	camera.lookAt(glm::vec3(3, 3, 3),		// offset  
 		glm::vec3(0, 0, 0),		// origin
 		glm::vec3(0, 1, 0));	// up
+
+	// particle emitter
+	m_emitter = new ParticleEmitter();
+	m_emitter->Create(1000, 500, 0.1f, 2.0f, 1, 3, 0.3f, 0.05f, vec4(1, 0, 0, 1), vec4(1, 1, 0, 1));
 }
 
 void TestApp::onTerm()

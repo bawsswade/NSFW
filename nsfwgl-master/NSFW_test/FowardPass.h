@@ -5,6 +5,7 @@
 
 #include "Camera.h"
 #include "GameObject.h"
+#include "Particles.h"
 #include "Light.h"
 
 class FowardPass : public nsfw::RenderPass
@@ -16,15 +17,18 @@ public:
 	void prep()
 	{		
 		glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
+		//glBindFramebuffer(GL_READ_FRAMEBUFFER, *fbo);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, *shadowMap ,0);
+
 		glUseProgram(*shader);
 
-		glClearColor(0.25f, 0.25f, 0.25f, 1);
+		glClearColor(0.1f, 0.1f, 0.1f, 1);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
-
+	  
 	void post()
 	{
 		glDisable(GL_CULL_FACE);
@@ -52,5 +56,8 @@ public:
 
 		glBindVertexArray(*go.mesh);
 		glDrawElements(GL_TRIANGLES, *go.tris, GL_UNSIGNED_INT, 0);
+
+		// particle emitter
+
 	}
 };

@@ -11,9 +11,9 @@ uniform sampler2D Diffuse;
 uniform sampler2D shadowMap;
 uniform vec3 camPos;
 
-vec3 lightColor   = vec3(0.0f, 0.6f, 0.0f);
-vec3 lightDir     = normalize(vec3( 1 , 1, 1));
-float specPower   = 100.0f;
+vec3 lightColor   = vec3(0.3f, 0.3f, 0.2f);
+vec3 lightDir     = normalize(vec3( 0.5f , 0.1f, 0.5f));
+float specPower   = 25.0f;
 float shadowBias  = 0.01f;
 
 vec2 poissonDisk[4] = vec2[](
@@ -23,7 +23,7 @@ vec2 poissonDisk[4] = vec2[](
   vec2( 0.34495938, 0.29387760 )
 );
 
-vec3 ambientColor = vec3( 0.5f, 0.5f, 0.5f); 
+vec3 ambientColor = vec3( 1.0f, 1.0f, 1.0f); 
 
 void main()
 {
@@ -38,7 +38,7 @@ void main()
 
 	for(int i = 0; i < 4; i++)
 	{
-		if( texture(shadowMap, vShadowCoord.xy + poissonDisk[i]/1000.0 ).z < vShadowCoord.z - shadowBias)
+		if( texture(shadowMap, vShadowCoord.xy ).z < vShadowCoord.z - shadowBias)
 		{
 			visibility -= 0.2f;
 		}
@@ -54,5 +54,5 @@ void main()
 	vec3 specular = visibility * ambientColor * specTerm * lightColor;
 
 	FragColor = vec4(ambient + l_color + specular ,1);
-	//FragColor = vec4(visibility,visibility,visibility,1);
+	//FragColor = vec4(specular,1);
 }

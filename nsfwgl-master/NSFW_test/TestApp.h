@@ -5,14 +5,17 @@
 #include "PostPass.h"
 #include "ShadowPass.h"
 #include "Camera.h"
+#include "ParticlePass.h"
 #include <nsfw.h>
 
 class TestApp:public nsfw::Application
 {
+	ParticleEmitter *m_emitter;
 	Camera camera;
 	GameObject obj;
 	GameObject plane;
 	ShadowPass sp;
+	ParticlePass pp;
 	FowardPass fp;
 	Light light;
 	Light l2;

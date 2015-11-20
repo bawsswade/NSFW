@@ -1,5 +1,20 @@
 #include "nsfw.h"
 
+void APIENTRY oglErrorDefaultCallback(GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar *message,
+	const void *userParam)
+{
+	// if 'GL_DEBUG_OUTPUT_SYNCHRONOUS' is enabled, you can place a
+	// breakpoint here and the callstack should reflect the problem location!
+	// e.g. glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+	std::cerr << message << std::endl;
+}
+
 void nsfw::Window::init(unsigned a_width, unsigned a_height)
 {
 	//TODO_D("Should create and set an active windowing context. ONLY GLFW! No GL!");
@@ -8,6 +23,10 @@ void nsfw::Window::init(unsigned a_width, unsigned a_height)
 	
 	width = a_width;
 	height = a_height;
+
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+	glfwWindowHint(GLFW_SAMPLES, 4);
+
 	window = glfwCreateWindow(width, height, "NSFWGL", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	if (ogl_LoadFunctions() == ogl_LOAD_FAILED)
@@ -15,6 +34,23 @@ void nsfw::Window::init(unsigned a_width, unsigned a_height)
 		glfwDestroyWindow(window);
 		glfwTerminate();
 	}
+
+	// TODO: only do this on ogl4.3+
+#ifdef _DEBUG
+	if (glDebugMessageCallback)
+	{
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(oglErrorDefaultCallback, nullptr);
+
+		GLuint unusedIDs = 0;
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIDs, true);
+	}
+	else
+	{
+		std::cerr << "Failed to subscribe to glDebugMessageCallback." << std::endl;
+	}
+#endif
+
 	auto major = ogl_GetMajorVersion();
 	auto minor = ogl_GetMinorVersion();
 	printf("GL: %i.%i\n", major, minor);

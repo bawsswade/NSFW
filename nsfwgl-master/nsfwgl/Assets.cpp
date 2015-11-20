@@ -17,7 +17,7 @@ nsfw::GL_HANDLE nsfw::Assets::getVERIFIED(const AssetKey &key) const
 #ifdef _DEBUG
 			if (!handles.count(key))
 			{
-				std::cerr << "Asset Key not found: <" << TYPE_NAMES[key.first] << ">" << key.second << std::endl;
+				std::cerr << "***Asset Key not found: <" << TYPE_NAMES[key.first] << ">" << key.second << std::endl;
 				return 0;
 			}
 #endif
@@ -30,7 +30,7 @@ bool nsfw::Assets::setINTERNAL(ASSET::GL_HANDLE_TYPE t, const char *name, GL_HAN
 #ifdef _DEBUG
 	if (handles.count(key))
 	{
-		std::cerr << "Asset Key already exists: <" << TYPE_NAMES[key.first] << ">" << key.second << " ignoring." << std::endl;
+		std::cerr << "***Asset Key already exists: <" << TYPE_NAMES[key.first] << ">" << key.second << " ignoring." << std::endl;
 		return false;
 	}
 	else std::cerr << "Asset Key successfully created: <" << TYPE_NAMES[key.first] << ">" << key.second << std::endl;
@@ -38,7 +38,6 @@ bool nsfw::Assets::setINTERNAL(ASSET::GL_HANDLE_TYPE t, const char *name, GL_HAN
 	handles[key] = handle;
 	return true;
 }
-
 
 bool nsfw::Assets::makeVAO(const char * name, const struct Vertex *verts, unsigned vsize,  const unsigned * tris, unsigned tsize)
 {
@@ -106,6 +105,7 @@ bool nsfw::Assets::makeFBO(const char * name, unsigned w, unsigned h, unsigned n
 	GL_HANDLE h_fbo;
 	glGenFramebuffers(1, &h_fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, h_fbo);
+	
 	std::vector<GLenum> drawBuffers;
 
 	//	8 guaranteed color attachments (with 1 stencil, 1 depth)
@@ -121,15 +121,14 @@ bool nsfw::Assets::makeFBO(const char * name, unsigned w, unsigned h, unsigned n
 		else Attachments = GL_COLOR_ATTACHMENT0 + n++;										// color
 
 		glFramebufferTexture(GL_FRAMEBUFFER, Attachments, get(TEXTURE, names[i]), 0);
-		
 	}
 
 	GLenum *colorAttachments = new GLenum[n];
 	for (int i = 0; i < n; i++) 
 		colorAttachments[i] = GL_COLOR_ATTACHMENT0 + i;
-	glDrawBuffers(n, colorAttachments);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
+	glDrawBuffers(n, colorAttachments);
+
 	setINTERNAL(FBO, name, h_fbo);
 
 	//error checking
@@ -139,11 +138,11 @@ bool nsfw::Assets::makeFBO(const char * name, unsigned w, unsigned h, unsigned n
 		bool incompleteAttachment = status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		bool invalidEnum = status == GL_INVALID_ENUM;
 		bool invalidValue = status == GL_INVALID_VALUE;
-		printf("Framebuffer Error!\n");
+		std::cout << name << " FBO unsuccessfully made" << std::endl;
 		return false;
 	}
 
-	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return true;
 }
@@ -155,13 +154,16 @@ bool nsfw::Assets::makeTexture(const char * name, unsigned w, unsigned h, unsign
 	GL_HANDLE h_texture;
 
 	glGenTextures(1, &h_texture);
+	
 	glBindTexture(GL_TEXTURE_2D, h_texture);
-
-	//GLenum a_depth = (depth == GL_DEPTH_COMPONENT) ? GL_DEPTH_ATTACHMENT : depth;			//what does this do?
-	// valic values for depth GL_RGBA, GL_RGB, GL_RG, GL_RED, GL_REPTH_XOMPONTENT, GL_DEPTH_STENCIL
 	glTexImage2D(GL_TEXTURE_2D, 0, depth, w, h, 0, depth, GL_UNSIGNED_BYTE, pixels);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	
+	//GLenum a_depth = (depth == GL_DEPTH_COMPONENT) ? GL_DEPTH_ATTACHMENT : depth;			//what does this do?
+	// valic values for depth GL_RGBA, GL_RGB, GL_RG, GL_RED, GL_REPTH_XOMPONTENT, GL_DEPTH_STENCIL
+	
+
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -171,7 +173,9 @@ bool nsfw::Assets::makeTexture(const char * name, unsigned w, unsigned h, unsign
 	{
 		bool invalidEnum = error == GL_INVALID_ENUM;
 		bool invalidValue = error == GL_INVALID_VALUE;
-		std::cout << name << " texture unsuccessfully loaded\n";
+		std::cout << name << " texture unsuccessfully created\n";
+		if (invalidEnum) printf("invalid enum");
+		if (invalidValue) printf("invalid enum");
 		return false;
 	}
 

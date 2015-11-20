@@ -7,6 +7,7 @@ class ShadowPass : public nsfw::RenderPass
 {
 public:
 
+
 	void prep() 
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
