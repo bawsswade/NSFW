@@ -122,7 +122,7 @@ namespace nsfw
 		// Should also allocate for IBO and VBO
 		bool makeVAO(const char *name, const struct Vertex *verts, unsigned vsize, const unsigned *tris, unsigned tsize);
 		// for particles
-		//bool makeVAO(const char *name, const struct Vertex *verts, unsigned vsize, const unsigned *tris, bool = false);
+		bool makeVAO();
 
 		// should call makeTexture nTextures number of times
 		bool makeFBO(const char *name, unsigned w, unsigned h, unsigned nTextures, const char *names[], const unsigned depths[]);
@@ -135,6 +135,9 @@ namespace nsfw
 	
 		// should load a shader from file
 		bool loadShader(const char *name, const char *vpath, const char *fpath);
+
+		// additionally loads geometry shader
+		bool loadShader(const char *name, const char *vpath, const char *fpath, const char *gpath);
 	
 		// should load from an FBX, adding assets to the library as they are discovered
 		bool loadFBX(const char *name, const char *path);

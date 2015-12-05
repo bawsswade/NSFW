@@ -4,7 +4,7 @@ using namespace std;
 
 void TestApp::onStep()
 {
-	auto &ass = nsfw::Assets::instance();
+ 	auto &ass = nsfw::Assets::instance();
 
 	camera.Input(10.0f, nsfw::Window::instance().getDeltaTime());
 	float dt = nsfw::Window::instance().getDeltaTime();
@@ -25,6 +25,8 @@ void TestApp::onStep()
 	pp.prep();
 	pp.draw(m_emitter, camera);
 	pp.post();
+
+	//m_GPUemitter->Draw((float)glfwGetTime(), camera.getWorldTransform(), camera.getProjectionView());
 
 	cp.prep();
 	cp.draw();
@@ -56,6 +58,7 @@ void TestApp::onPlay()
 	fp.shadowMap = "ShadowDepth";
 
 	pp.shader = "ParticleShader";
+	pp.shader = "ParticleShader";
 	pp.fbo = "ParticlesFBO";
 
 	cp.shader = "Post";	
@@ -75,6 +78,9 @@ void TestApp::onInit()
 
 	nsfw::Assets::instance().loadShader("ParticleShader", "../resources/shaders/particle.vert", "../resources/shaders/particle.frag");
 
+	// for GPU particles
+	//nsfw::Assets::instance().loadShader("GPUParticleShader", "../resources/shaders/gpuParticle.vert", "../resources/shaders/gpuParticle.frag", "../resources/shaders/gpuParticle.geom");
+
 	nsfw::Assets::instance().loadTexture("Stone", "../resources/textures/stone.jpg");
 
 	nsfw::Assets::instance().loadTexture("White", "../resources/textures/white.png");
@@ -88,6 +94,12 @@ void TestApp::onInit()
 	const char *p_names[] = { "Particles", "ParticleDepth" };
 	const unsigned p_deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
 	nsfw::Assets::instance().makeFBO("ParticlesFBO", 800, 600, 2, p_names, p_deps);
+	
+	// for GPUParticles
+	//const char* varyings[] = { "position", "velocity", "lifetime", "lifespan" };
+	// something like this
+	//glTransformFeedbackVaryings(nsfw::Assets::instance().get("GPUParticleShader"), 4, varyings, GL_INTERLEAVED_ATTRIBS);
+
 
 	// shadow
 	const char   *s_names[] = { "ShadowDepth" };
@@ -97,6 +109,10 @@ void TestApp::onInit()
 	camera.lookAt(glm::vec3(3, 3, 3),		// offset  
 		glm::vec3(0, 0, 0),		// origin
 		glm::vec3(0, 1, 0));	// up
+
+	// GPU Particle Emitter
+	//m_GPUemitter = new GPUParticleEmitter();
+	//m_GPUemitter->Initialize(100000, 0.1f, 5.0f, 5, 20, 1, 0.1f, vec4(1, 0, 0, 1), vec4(1, 1, 0, 1));
 
 	// particle emitter
 	m_emitter = new ParticleEmitter();

@@ -10,6 +10,7 @@
 
 class TestApp:public nsfw::Application
 {
+	//GPUParticleEmitter *m_GPUemitter;
 	ParticleEmitter *m_emitter;
 	Camera camera;
 	GameObject obj;

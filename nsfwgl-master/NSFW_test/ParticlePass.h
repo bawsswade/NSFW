@@ -35,4 +35,10 @@ public:
 		m_emitter->Update(nsfw::Window::instance().getDeltaTime(), c.getWorldTransform());
 		m_emitter->Draw();
 	}
+
+	void GPUdraw(GPUParticleEmitter *m_emitter, Camera c)
+	{
+		
+		// do the se4tUniform stuff in createDrawShader function
+	}
 };

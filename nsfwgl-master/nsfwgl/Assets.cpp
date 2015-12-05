@@ -298,6 +298,66 @@ bool nsfw::Assets::loadShader(const char * name, const char * vpath, const char 
 	return true;
 }
 
+// for include geometry shader
+bool nsfw::Assets::loadShader(const char *name, const char *vpath, const char *fpath, const char *gpath)
+{
+	TODO_D("Optimize to load geo pass.\n");
+
+	ASSET_LOG(GL_HANDLE_TYPE::SHADER);
+	GL_HANDLE h_shader;
+
+	std::ifstream vin(vpath);
+	std::string vcontents((std::istreambuf_iterator<char>(vin)), std::istreambuf_iterator<char>());
+
+	std::ifstream fin(fpath);
+	std::string fcontents((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
+
+	std::ifstream gin(gpath);
+	std::string gcontents((std::istreambuf_iterator<char>(gin)), std::istreambuf_iterator<char>());
+
+	const char* vsSource = vcontents.c_str();
+	const char* fsSource = fcontents.c_str();
+	const char* gsSource = gcontents.c_str();
+
+	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vsSource, 0);
+	glCompileShader(vertexShader);
+
+	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fsSource, 0);
+	glCompileShader(fragmentShader);
+
+	unsigned int geometryShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(geometryShader, 1, &gsSource, 0);
+	glCompileShader(geometryShader);
+
+	h_shader = glCreateProgram();
+	glAttachShader(h_shader, vertexShader);
+	glAttachShader(h_shader, fragmentShader);
+	glAttachShader(h_shader, geometryShader);
+	glLinkProgram(h_shader);
+
+	GLint status;
+	glGetProgramiv(h_shader, GL_LINK_STATUS, &status);
+	if (status != GL_TRUE)	// do we have a problem?!
+	{
+		GLsizei logLen = 0;
+		GLchar errorMsg[1024];
+		glGetProgramInfoLog(h_shader, 1024, &logLen, errorMsg);
+
+		std::cerr << errorMsg << std::endl;
+		return false;
+	}
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+	glDeleteShader(geometryShader);
+
+	setINTERNAL(SHADER, name, h_shader);
+
+	return true;
+}
+
 bool nsfw::Assets::loadFBX(const char * name, const char * path)
 {
 	//TODO_D("FBX file-loading support needed.\nThis function should call loadTexture and makeVAO internally.\nFBX meshes each have their own name, you may use this to name the meshes as they come in.\nMAKE SURE YOU SUPPORT THE DIFFERENCE BETWEEN FBXVERTEX AND YOUR VERTEX STRUCT!\n");
