@@ -34,7 +34,7 @@ void main()
 	corners[3] = vec3(halfSize, -halfSize, 0);
 	
 	// billboard
-	vec3 zAxis = normilize(CameraTransform[3].xyz - position[0]);
+	vec3 zAxis = normalize(CameraTransform[3].xyz - position[0]);
 	vec3 xAxis = cross(CameraTransform[3].xyz, zAxis);
 	vec3 yAxis = cross(zAxis, xAxis);
 	mat3 billboard = mat3(xAxis, yAxis, zAxis);

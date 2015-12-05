@@ -2,35 +2,59 @@
 #include <iostream>
 using namespace std;
 
-void TestApp::onStep()
+void TestApp::onInit()
 {
- 	auto &ass = nsfw::Assets::instance();
+	nsfw::Assets::instance().loadFBX("SoulSpear", "../resources/FBX/soulspear/soulspear.fbx");
 
-	camera.Input(10.0f, nsfw::Window::instance().getDeltaTime());
-	float dt = nsfw::Window::instance().getDeltaTime();
-	obj.transform = glm::rotate(obj.transform, (dt * 10), vec3(0, 1, 0));
+	nsfw::Assets::instance().loadShader("Basic", "../resources/shaders/basic.vert", "../resources/shaders/basic.frag");
 
-	sp.prep();
-	sp.draw(light, obj);
-	sp.draw(light, plane);
-	//sp.draw(l2, obj);		// trying to add another light but need to have another shader propgram
-	//sp.draw(l2, plane);
-	sp.post();
+	nsfw::Assets::instance().loadShader("Post", "../resources/shaders/post.vert", "../resources/shaders/post.frag");
 
-	fp.prep();
-	fp.draw(camera, obj, light);
-	fp.draw(camera, plane, light);
-	fp.post();
+	nsfw::Assets::instance().loadShader("Light", "../resources/shaders/light.vert", "../resources/shaders/light.frag");
 
-	pp.prep();
-	pp.draw(m_emitter, camera);
-	pp.post();
+	nsfw::Assets::instance().loadShader("ShadowShader", "../resources/shaders/shadow.vert", "../resources/shaders/shadow.frag");
 
-	//m_GPUemitter->Draw((float)glfwGetTime(), camera.getWorldTransform(), camera.getProjectionView());
+	//nsfw::Assets::instance().loadShader("ParticleShader", "../resources/shaders/particle.vert", "../resources/shaders/particle.frag");
 
-	cp.prep();
-	cp.draw();
-	cp.post();
+	// for GPU particles
+	nsfw::Assets::instance().loadShader("GPUParticleShader", "../resources/shaders/gpuParticle.vert", "../resources/shaders/gpuParticle.frag", "../resources/shaders/gpuParticle.geom");
+
+	nsfw::Assets::instance().loadTexture("Stone", "../resources/textures/stone.jpg");
+
+	nsfw::Assets::instance().loadTexture("White", "../resources/textures/white.png");
+
+	// foward rendering
+	const char   *names[] = { "ForwardFinal", "ForwardDepth" };
+	const unsigned deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
+	nsfw::Assets::instance().makeFBO("Forward", 800, 600, 2, names, deps);
+
+	// for particles
+	const char *p_names[] = { "Particles", "ParticleDepth" };
+	const unsigned p_deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
+	nsfw::Assets::instance().makeFBO("ParticlesFBO", 800, 600, 2, p_names, p_deps);
+
+	// for GPUParticles
+	//const char* varyings[] = { "position", "velocity", "lifetime", "lifespan" };
+	// something like this
+	//glTransformFeedbackVaryings(nsfw::Assets::instance().get("GPUParticleShader"), 4, varyings, GL_INTERLEAVED_ATTRIBS);
+
+
+	// shadow
+	const char   *s_names[] = { "ShadowDepth" };
+	const unsigned s_deps[] = { GL_DEPTH_COMPONENT };
+	nsfw::Assets::instance().makeFBO("ShadowFBO", 512, 512, 1, s_names, s_deps);
+
+	camera.lookAt(glm::vec3(3, 3, 3),		// offset  
+		glm::vec3(0, 0, 0),		// origin
+		glm::vec3(0, 1, 0));	// up
+
+	// GPU Particle Emitter
+	m_GPUemitter = new GPUParticleEmitter();
+	m_GPUemitter->Initialize(100000, 0.1f, 5.0f, 5, 20, 1, 0.1f, vec4(1, 0, 0, 1), vec4(1, 1, 0, 1));
+
+	// particle emitter
+	m_emitter = new ParticleEmitter();
+	m_emitter->Create(1000, 500, 0.1f, 2.0f, 1, 3, 0.3f, 0.05f, vec4(1, 0, 0, 1), vec4(1, 1, 0, 1));
 }
 
 void TestApp::onPlay()
@@ -57,66 +81,41 @@ void TestApp::onPlay()
 	fp.fbo = "Forward";
 	fp.shadowMap = "ShadowDepth";
 
-	pp.shader = "ParticleShader";
-	pp.shader = "ParticleShader";
+	//pp.shader = "ParticleShader";
+	pp.shader = "GPUParticleShader";
 	pp.fbo = "ParticlesFBO";
 
-	cp.shader = "Post";	
+	cp.shader = "Post";
 }
 
-void TestApp::onInit()
+
+
+void TestApp::onStep()
 {
-	nsfw::Assets::instance().loadFBX("SoulSpear", "../resources/FBX/soulspear/soulspear.fbx");
+ 	auto &ass = nsfw::Assets::instance();
 
-	nsfw::Assets::instance().loadShader("Basic","../resources/shaders/basic.vert", "../resources/shaders/basic.frag");
+	camera.Input(10.0f, nsfw::Window::instance().getDeltaTime());
+	float dt = nsfw::Window::instance().getDeltaTime();
+	obj.transform = glm::rotate(obj.transform, (dt * 10), vec3(0, 1, 0));
 
-	nsfw::Assets::instance().loadShader("Post", "../resources/shaders/post.vert", "../resources/shaders/post.frag");
+	sp.prep();
+	sp.draw(light, obj);
+	sp.draw(light, plane);
+	sp.post();
 
-	nsfw::Assets::instance().loadShader("Light", "../resources/shaders/light.vert", "../resources/shaders/light.frag");
+	fp.prep();
+	fp.draw(camera, obj, light);
+	fp.draw(camera, plane, light);
+	fp.post();
 
-	nsfw::Assets::instance().loadShader("ShadowShader", "../resources/shaders/shadow.vert", "../resources/shaders/shadow.frag");
+	pp.prep();
+	//pp.draw(m_emitter, camera);
+	pp.GPUdraw(m_GPUemitter, camera);
+	pp.post();
 
-	nsfw::Assets::instance().loadShader("ParticleShader", "../resources/shaders/particle.vert", "../resources/shaders/particle.frag");
-
-	// for GPU particles
-	//nsfw::Assets::instance().loadShader("GPUParticleShader", "../resources/shaders/gpuParticle.vert", "../resources/shaders/gpuParticle.frag", "../resources/shaders/gpuParticle.geom");
-
-	nsfw::Assets::instance().loadTexture("Stone", "../resources/textures/stone.jpg");
-
-	nsfw::Assets::instance().loadTexture("White", "../resources/textures/white.png");
-
-	// foward rendering
-	const char   *names[] = { "ForwardFinal", "ForwardDepth"};
-	const unsigned deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
-	nsfw::Assets::instance().makeFBO("Forward", 800, 600, 2, names, deps);
-
-	// for particles
-	const char *p_names[] = { "Particles", "ParticleDepth" };
-	const unsigned p_deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
-	nsfw::Assets::instance().makeFBO("ParticlesFBO", 800, 600, 2, p_names, p_deps);
-	
-	// for GPUParticles
-	//const char* varyings[] = { "position", "velocity", "lifetime", "lifespan" };
-	// something like this
-	//glTransformFeedbackVaryings(nsfw::Assets::instance().get("GPUParticleShader"), 4, varyings, GL_INTERLEAVED_ATTRIBS);
-
-
-	// shadow
-	const char   *s_names[] = { "ShadowDepth" };
-	const unsigned s_deps[] = { GL_DEPTH_COMPONENT };
-	nsfw::Assets::instance().makeFBO("ShadowFBO", 512, 512, 1, s_names, s_deps);
-
-	camera.lookAt(glm::vec3(3, 3, 3),		// offset  
-		glm::vec3(0, 0, 0),		// origin
-		glm::vec3(0, 1, 0));	// up
-
-	// GPU Particle Emitter
-	//m_GPUemitter = new GPUParticleEmitter();
-	//m_GPUemitter->Initialize(100000, 0.1f, 5.0f, 5, 20, 1, 0.1f, vec4(1, 0, 0, 1), vec4(1, 1, 0, 1));
-
-	// particle emitter
-	m_emitter = new ParticleEmitter();
-	m_emitter->Create(1000, 500, 0.1f, 2.0f, 1, 3, 0.3f, 0.05f, vec4(1, 0, 0, 1), vec4(1, 1, 0, 1));
+	cp.prep();
+	cp.draw();
+	cp.post();
 }
 
 void TestApp::onTerm()

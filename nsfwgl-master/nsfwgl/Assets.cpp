@@ -301,7 +301,7 @@ bool nsfw::Assets::loadShader(const char * name, const char * vpath, const char 
 // for include geometry shader
 bool nsfw::Assets::loadShader(const char *name, const char *vpath, const char *fpath, const char *gpath)
 {
-	TODO_D("Optimize to load geo pass.\n");
+	//TODO_D("Optimize to load geo pass.\n");
 
 	ASSET_LOG(GL_HANDLE_TYPE::SHADER);
 	GL_HANDLE h_shader;
@@ -327,7 +327,7 @@ bool nsfw::Assets::loadShader(const char *name, const char *vpath, const char *f
 	glShaderSource(fragmentShader, 1, &fsSource, 0);
 	glCompileShader(fragmentShader);
 
-	unsigned int geometryShader = glCreateShader(GL_FRAGMENT_SHADER);
+	unsigned int geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
 	glShaderSource(geometryShader, 1, &gsSource, 0);
 	glCompileShader(geometryShader);
 

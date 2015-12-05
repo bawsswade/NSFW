@@ -36,9 +36,8 @@ public:
 		m_emitter->Draw();
 	}
 
-	void GPUdraw(GPUParticleEmitter *m_emitter, Camera c)
+	void GPUdraw(GPUParticleEmitter *e, Camera c)
 	{
-		
-		// do the se4tUniform stuff in createDrawShader function
+		e->Draw(nsfw::Window::instance().getDeltaTime(), c.getWorldTransform(), c.getProjectionView());
 	}
 };
