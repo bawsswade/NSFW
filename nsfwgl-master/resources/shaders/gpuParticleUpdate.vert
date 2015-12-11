@@ -30,7 +30,7 @@ void main()
 {
 	v_position = Position + Velocity * deltaTime;
 	v_velocity = Velocity;
-	f_lifetime = Lifetime;
+	f_lifetime = Lifetime + deltaTime;
 	f_lifespan = Lifespan;
 	
 	if (f_lifetime > f_lifespan)
@@ -40,7 +40,12 @@ void main()
 		v_velocity.y = rand(seed++, 2) - 1;
 		v_velocity.z = rand(seed++, 2) - 1;
 		v_velocity = normalize(v_velocity);
-		v_position = emitterPostion;
+		//v_position = emitterPostion;
+		
+		float xpos = 3 * cos(time/2);
+		float ypos = sin(time) + 0.5f;
+		float zpos = 3 * sin(time/2);
+		v_position = vec3(xpos, ypos, zpos);
 		f_lifetime = 0;
 		f_lifespan = rand(seed++, lifeMax - lifeMin) + lifeMin;
 	}

@@ -52,7 +52,11 @@ public:
 		// for light 
 		setUniform("LightMatrix", nsfw::UNIFORM::MAT4, glm::value_ptr(l.getProjectionView()));
 		setUniform("LightOffset", nsfw::UNIFORM::MAT4, glm::value_ptr(l.getOffset()));
-		//setUniform("LightColor", nsfw::UNIFORM::, glm::value_ptr());
+
+		float t = nsfw::Window::instance().getTime();
+		setUniform("time", nsfw::UNIFORM::FLO1, &(t));
+		//int loc = glGetUniformLocation(, "time");
+		//glUniform1f(loc, nsfw::Window::instance().getTime());
 
 		glBindVertexArray(*go.mesh);
 		glDrawElements(GL_TRIANGLES, *go.tris, GL_UNSIGNED_INT, 0);

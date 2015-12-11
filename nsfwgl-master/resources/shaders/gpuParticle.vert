@@ -14,4 +14,8 @@ void main()
 	position = Position;
 	lifetime = Lifetime;
 	lifespan = Lifespan;
+	
+	//position = vec3(0,0,0);
+	//lifetime = 1;
+	//lifespan = 1;
 }

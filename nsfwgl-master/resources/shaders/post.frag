@@ -23,9 +23,9 @@ void main()
 		FragColor = vec4( final + particles, 1);
 		
 		// for CPU particles
-		//if(gd.z < pd.z)
-		//FragColor = vec4(final,1);
-		//else FragColor = vec4(particles,1);
+		if(gd.z < pd.z)
+			FragColor = vec4(final,1);
+		else FragColor = vec4(particles,1);
 		
-		FragColor = vec4(particles, 1);
+		//FragColor = vec4(particles, 1);
 }

@@ -5,7 +5,7 @@
 #include "Camera.h"
 
 struct GPUParticle {
-	//GPUPartice() : lifetime(1), lifespan(0) {}
+	GPUParticle() : lifetime(1), lifespan(0), position(0.f), velocity(0.f) {}
 	vec3 position;
 	vec3 velocity;
 	float lifetime = 1;

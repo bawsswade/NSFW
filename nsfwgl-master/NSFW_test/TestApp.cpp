@@ -14,7 +14,7 @@ void TestApp::onInit()
 
 	nsfw::Assets::instance().loadShader("ShadowShader", "../resources/shaders/shadow.vert", "../resources/shaders/shadow.frag");
 
-	//nsfw::Assets::instance().loadShader("ParticleShader", "../resources/shaders/particle.vert", "../resources/shaders/particle.frag");
+	nsfw::Assets::instance().loadShader("ParticleShader", "../resources/shaders/particle.vert", "../resources/shaders/particle.frag");
 
 	// for GPU particles
 	nsfw::Assets::instance().loadShader("GPUParticleShader", "../resources/shaders/gpuParticle.vert", "../resources/shaders/gpuParticle.frag", "../resources/shaders/gpuParticle.geom");
@@ -29,7 +29,7 @@ void TestApp::onInit()
 	nsfw::Assets::instance().makeFBO("Forward", 800, 600, 2, names, deps);
 
 	// for particles
-	const char *p_names[] = { "Particles", "ParticleDepth" };
+	const char *p_names[] = { "Particles", "ParticleDepth" };	
 	const unsigned p_deps[] = { GL_RGBA, GL_DEPTH_COMPONENT };
 	nsfw::Assets::instance().makeFBO("ParticlesFBO", 800, 600, 2, p_names, p_deps);
 
@@ -50,7 +50,11 @@ void TestApp::onInit()
 
 	// GPU Particle Emitter
 	m_GPUemitter = new GPUParticleEmitter();
-	m_GPUemitter->Initialize(100000, 0.1f, 5.0f, 5, 20, 1, 0.1f, vec4(1, 0, 0, 1), vec4(1, 1, 0, 1));
+	m_GPUemitter->Initialize(100000, 
+		0.1f, 5.0f, 
+		5, 20, 
+		0.01f, 0.001f, 
+		vec4(1, 0, 0, 1), vec4(1, 1, 0, 1));
 
 	// particle emitter
 	m_emitter = new ParticleEmitter();
@@ -61,8 +65,6 @@ void TestApp::onPlay()
 {
 	light.direction = glm::normalize(vec4(1));
 	light.color = vec4(0.3f, 0.3f, 0.3f, 0);
-	//l2.direction = glm::normalize(vec4(-1, 1, 1, 1));
-	//l2.color = vec4(0.1f, 0.1f, 1.0f, 0);
 	obj.diffuse = "SoulSpearsoulspear_diffuse.tga";					// default
 	obj.mesh = "SoulSpear_Low:SoulSpear_Low1";						// default
 	obj.tris = "SoulSpear_Low:SoulSpear_Low1";						// default

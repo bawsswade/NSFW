@@ -27,7 +27,7 @@ GPUParticleEmitter::~GPUParticleEmitter()
 }
 
 void GPUParticleEmitter::Initialize(unsigned int a_maxParticles,
-	float a_lifetimeMin, float a_lifetimeMax,
+	float a_lifespanMin, float a_lifespanMax,
 	float a_velocityMin, float a_velocityMax,
 	float a_startSize, float a_endSize,
 	const vec4 &a_startColor, const vec4 &a_endColor)
@@ -38,8 +38,8 @@ void GPUParticleEmitter::Initialize(unsigned int a_maxParticles,
 	m_endSize		= a_endSize;
 	m_velocityMin	= a_velocityMin;
 	m_velocityMax	= a_velocityMax;
-	m_lifespanMin	= a_velocityMin;
-	m_lifespanMax	= a_velocityMax;
+	m_lifespanMin	= a_lifespanMin;
+	m_lifespanMax	= a_lifespanMax;
 	m_maxParticles	= a_maxParticles;
 
 	m_particles = new GPUParticle[a_maxParticles];
@@ -61,16 +61,21 @@ void GPUParticleEmitter::Draw(float time, const mat4& a_cameraTransform, const m
 	int loc = glGetUniformLocation(m_updateShader, "time");
 	glUniform1f(loc, time);
 
-	float deltaTime = time - m_lastDrawTime;
-	m_lastDrawTime = time;
+	float deltaTime = nsfw::Window::instance().getDeltaTime();
 
 	loc = glGetUniformLocation(m_updateShader, "deltaTime");
 	glUniform1f(loc, deltaTime);
 
 	// bind emiter's position
 	loc = glGetUniformLocation(m_updateShader, "emitterPosition");
-
 	glUniform3fv(loc, 1, &m_position[0]);
+
+	// bind life min and max
+	loc = glGetUniformLocation(m_updateShader, "lifeMin");
+	glUniform1f(loc, m_lifespanMin);
+
+	loc = glGetUniformLocation(m_updateShader, "lifeMax");
+	glUniform1f(loc, m_lifespanMax);
 
 	glEnable(GL_RASTERIZER_DISCARD);
 
@@ -81,7 +86,7 @@ void GPUParticleEmitter::Draw(float time, const mat4& a_cameraTransform, const m
 	unsigned int otherBuffer = (m_activeBuffer + 1) % 2;
 
 	//bidn other buffer to update as points and begin transform feedback
-	glBindBufferBase(GL_TRANSFORM_FEEDBACK, 0, m_vbo[otherBuffer]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, m_vbo[otherBuffer]);
 	glBeginTransformFeedback(GL_POINTS);
 
 	glDrawArrays(GL_POINTS, 0, m_maxParticles);
@@ -95,13 +100,13 @@ void GPUParticleEmitter::Draw(float time, const mat4& a_cameraTransform, const m
 	glUseProgram(m_drawShader);
 
 	loc = glGetUniformLocation(m_drawShader, "ProjectionView");
-	glUniformMatrix4fv(loc, 1, false, &a_projectionView[0][0]);
+	glUniformMatrix4fv(loc, 1, false, glm::value_ptr(a_projectionView));
 
 	loc = glGetUniformLocation(m_drawShader, "CameraTransform");
-	glUniformMatrix4fv(loc, 1, false, &a_cameraTransform[0][0]);
+	glUniformMatrix4fv(loc, 1, false, glm::value_ptr(a_cameraTransform));
 
 	// draw particles in other buffer
-	glBindVertexArray(m_vao[otherBuffer]);
+	glBindVertexArray(m_vao[m_activeBuffer]);
 	glDrawArrays(GL_POINTS, 0, m_maxParticles);
 
 	// swap for next frame
@@ -157,21 +162,35 @@ void GPUParticleEmitter::createUpdateShader()
 	glAttachShader(m_updateShader, vs);
 
 	//specify data
-	const char* varyings[] = { "position", "velocity", "lifetime", "lifespan" };
+	const char* varyings[] = { "v_position", "v_velocity", "f_lifetime", "f_lifespan" };
 	glTransformFeedbackVaryings(m_updateShader, 4, varyings, GL_INTERLEAVED_ATTRIBS);
 	glLinkProgram(m_updateShader);
 
 	// remove uneeded handles
 	glDeleteShader(vs);
+	GLint status;
+	glGetProgramiv(m_updateShader, GL_LINK_STATUS, &status);
+	if (status != GL_TRUE)	// do we have a problem?!
+	{
+		GLsizei logLen = 0;
+		GLchar errorMsg[1024];
+		glGetProgramInfoLog(m_updateShader, 1024, &logLen, errorMsg);
 
-	// bind shader
-	glUseProgram(m_updateShader);
+		std::cerr << errorMsg << std::endl;
+		//assert(false);
+	}
+
 
 	// bind lifetime min and max
 	int location = glGetUniformLocation(m_updateShader, "lifeMin");
 	glUniform1f(location, m_lifespanMin);
 	location = glGetUniformLocation(m_updateShader, "lifeMax");
 	glUniform1f(location, m_lifespanMax);
+
+	// bind shader
+	glUseProgram(m_updateShader);
+
+	
 }
 
 // load draw shader: create shader program handle, delete shaders, set uniforms
@@ -241,7 +260,7 @@ unsigned int GPUParticleEmitter::loadShader(unsigned int type, const char* path)
 	glCompileShader(shader);
 */
 	GLint status;
-	glGetProgramiv(shader, GL_LINK_STATUS, &status);
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 	//if (status != GL_TRUE)	// do we have a problem?!
 	//{
 	//	GLsizei logLen = 0;

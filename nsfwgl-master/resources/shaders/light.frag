@@ -4,6 +4,7 @@ in vec2 vTexCoord;
 in vec4 vNormal;
 in vec4 vPosition;
 in vec4 vShadowCoord;
+in float fTime;
 
 out vec4 FragColor;
 
@@ -11,8 +12,13 @@ uniform sampler2D Diffuse;
 uniform sampler2D shadowMap;
 uniform vec3 camPos;
 
-vec3 lightColor   = vec3(0.3f, 0.3f, 0.2f);
-vec3 lightDir     = normalize(vec3( 0.5f , 0.1f, 0.5f));
+float xpos = 3 * cos(fTime/2);
+float ypos = sin(fTime) + 0.5f;
+float zpos = 3 * sin(fTime/2);
+
+vec3 lightColor   = vec3(0.8f, 0.4f, 0.2f);
+//vec3 lightDir     = normalize(vec3( 0.5f , 0.1f, 0.5f));
+vec3 lightDir = normalize(vec3(xpos, -ypos, zpos));
 float specPower   = 25.0f;
 float shadowBias  = 0.01f;
 

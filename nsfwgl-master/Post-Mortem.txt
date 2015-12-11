@@ -1,0 +1,21 @@
+PostMortem Anlysis
+
+My goals for this project was to have all the requirements met along with some expirementation to delve a bit deeper
+into  the concepts and topics covered throughout the lessons.  Last year we created also created graphics renderer
+and this project was very helpful in refreshing my memory on OpenGL as well as learning new tools to use such as FBX
+and OBJ loading, GPU funcitonality, and shaders.  So far I have met my goals set for myself.  I could have done more 
+on playing around with different functions to get different results.    
+
+The one thing that I did and understood really well was lighting.  The concept of using matrix/vector math to objects
+to have them render a certain way is easily pictured im my head.  To me, working with shaders is more clear to me
+than OpenGL coding.  Debugging shaders are a bit tricky but with right error checking, problems can be more clear.  
+Also, with the help of Nsight, the step-through process became easier. 
+
+The thing that became the most difficult for me was refactoring from foward to deffered rendering. It was much
+needed because overall, my code becomes messy and unorganized. Also, looking at another person's code and understanding 
+the new structure of the framework took a while to grasp. It took a lot of explaining to find out how the functions
+work and how its all connected. A lot of help came from Esme and Terry. Some of the problems I had was spotting tiny mistakes like misplelt words. 
+
+In the future I would like to continue reviewing the topics that was covered in this project.  The worst thing that
+I can do is learn these topics and forget them later on.  I would also like to  continue working on these topics more 
+in depth.

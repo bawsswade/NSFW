@@ -29,26 +29,34 @@ void main()
 	
 	vec3 corners[4];
 	corners[0] = vec3(halfSize, -halfSize, 0);
-	corners[1] = vec3(halfSize, -halfSize, 0);
-	corners[2] = vec3(halfSize, -halfSize, 0);
-	corners[3] = vec3(halfSize, -halfSize, 0);
+	corners[1] = vec3(halfSize, halfSize, 0);
+	corners[2] = vec3(-halfSize, -halfSize, 0);
+	corners[3] = vec3(-halfSize, halfSize, 0);
 	
 	// billboard
 	vec3 zAxis = normalize(CameraTransform[3].xyz - position[0]);
 	vec3 xAxis = cross(CameraTransform[3].xyz, zAxis);
 	vec3 yAxis = cross(zAxis, xAxis);
+	
 	mat3 billboard = mat3(xAxis, yAxis, zAxis);
+	//mat3 billboard = mat3(1); 
+	
+		
 	
 	// emit the 4 vertices for the quad
 	gl_Position = ProjectionView * vec4(billboard *corners[0] + position[0], 1);
+	//gl_Position = vec4(corners[0],1);
 	EmitVertex();
 	
 	gl_Position = ProjectionView * vec4(billboard *corners[1] + position[0], 1);
+	//gl_Position = vec4(corners[1],1);
 	EmitVertex();
 	
 	gl_Position = ProjectionView * vec4(billboard *corners[2] + position[0], 1);
+	//gl_Position = vec4(corners[2],1);
 	EmitVertex();
 	
 	gl_Position = ProjectionView * vec4(billboard *corners[3] + position[0], 1);
+	//gl_Position = vec4(corners[3],1);
 	EmitVertex();
 }
